@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h7nms.dao.ProfessorDAO">
+<select id="prcourseList" resultType="com.h7nms.dto.CourseListDTO">
+select cid, cname, m2.name, date_full, room_num from course c, member m1, member m2
+where m1.userid=#{userid} and c.prid=m1.userid and c.inid=m2.userid order by date_full
+</select>
+<select id="prStincoList" resultType="com.h7nms.dto.PrStincoListDTO">
+select s.userid stid, s.name sname, attend_rate from member s, student_in_course sic 
+where s.userid=sic.stid and cid=#{cid} order by name asc
+</select>
+<select id="prStScoreList" parameterType="map" resultType="com.h7nms.dto.StScoreDTO">
+select ncs_name, type, sum(answer) sum from (select distinct ncs_name, type, tid, date_test,ncs_num from 
+test_paper where cid=#{cid}) a left outer join test_result tr on a.tid=tr.tid and tr.stid=#{stid} group by
+ncs_name, type,a.ncs_num, a.date_test order by a.date_test asc, a.ncs_num asc
+</select>
+<select id="prScore" resultType="com.h7nms.dto.PrScoreDTO">
+select distinct(c.cid), c.cname, t.ncs_name, t.ncs_num, t.date_session from course c,test t 
+ where c.cid=#{cid} and c.cid=t.cid order by t.date_session asc
+</select>
+
+<resultMap type="com.h7nms.dto.PrScoreListDTO" id="prScoreListMap">
+	 <result property="name" column="name" />
+	 <result property="sum" column="sum" />
+</resultMap>
+<select id="prScoreList" parameterType="com.h7nms.dto.PrScoreListDTO"  resultType="com.h7nms.dto.PrScoreListDTO">
+ select a.name, NVL(to_char(sum(b.answer)),'미실시') sum from 
+ (select st.name, st.userid from member st, student_in_course sic where st.userid=sic.stid and sic.cid=#{cid})
+a left outer join 
+(select st.userid, answer from member st, test_result tr where st.userid=tr.stid and tid=#{tid} ) 
+b on a.userid=b.userid group by name order by name
+</select>
+<select id="prScoreList2" parameterType="map" resultType="com.h7nms.dto.PrScoreListDTO">
+select a.name, NVL(to_char(sum(b.answer)),'미실시') sum from 
+(select st.name, st.userid from member st, student_in_course sic where st.userid=sic.stid and cid=#{cid})
+a left outer join (select st.userid, answer from member st, test_result tr
+where st.userid=tr.stid and tid=#{tid}) b on a.userid=b.userid group by name order by sum desc, name asc
+</select>
+<select id="prScoreList3" parameterType="map" resultType="com.h7nms.dto.PrScoreListDTO">
+select a.name, NVL(to_char(sum(b.answer)),'미실시') sum from 
+(select st.name, st.userid  from member st, student_in_course sic where st.userid=sic.stid and cid=#{cid}) 
+a left outer join (select st.userid, answer from member st, test_result tr 
+where st.userid=tr.stid and tid=#{tid}) b on a.userid=b.userid group by name order by sum asc, name asc
+</select>
+
+<select id="prtestInfo"  resultType="com.h7nms.dto.TestInfoDTO">
+select i.name name, t.date_session, t.date_test, c.cname, s.name sname, t.ncs_name, p.name pname, t.ncs_num 
+from member i, test t, course c, member s, member p, student_in_course sic
+where s.userid=sic.stid and sic.cid=c.cid and c.cid=t.cid and p.userid=c.prid and i.userid=c.inid
+and s.userid=#{stid} and t.tid=#{tid}
+</select>
+<select id="prshowQuesAnswerResultList"  resultType="com.h7nms.dto.TestQResultDTO">
+select tp.ques_area, tp.ques_num, tp.question, tr.answer 
+from test_paper tp, test_result tr where tp.tid=tr.tid and tp.ques_num=tr.ques_num and 
+tp.tid=#{tid} and stid=#{stid} order by tp.ques_num
+</select>
+<select id="prtestResultSumAvgList"  resultType="com.h7nms.dto.TestResultSNADTO">
+select ques_area, count(ques_num) count, sum(answer) sum, round(avg(answer),1) avg 
+from (select test_result.tid, test_paper.ques_area, test_result.ques_num, answer, stid from test_result, test_paper 
+where test_result.ques_num = test_paper.ques_num and test_result.tid=#{tid} and test_paper.tid=#{tid} and stid=#{stid})
+group by ques_area
+</select>
+
+<select id="prtestSelect" resultType="com.h7nms.dto.TestSelectDTO">
+select cid, cname name from course  where  prid=#{userid}
+</select>
+<select id="prtestSelect2" resultType="com.h7nms.dto.TestSelectDTO">
+select distinct c.cid, t.ncs_name name from test t, member m, course c
+where m.userid=c.prid and t.cid=c.cid and m.userid=#{userid} order by c.cid
+</select>
+
+<select id="prgetNCSnum" resultType="String">
+select DISTINCT ncs_num from test where ncs_name=#{ncs_name}
+</select>
+<select id="prgetNCSname" resultType="String">
+select DISTINCT ncs_name from test where ncs_num=#{ncs_num}
+</select>
+<select id="prgetStid" resultType="String">
+select userid from member where name=#{sname}
+</select>
+<select id="prgetSname"  resultType="String">
+select name sname from member where userid=#{stid}
+</select>
+<select id="prgetCid" resultType="int">
+select cid from course where cname=#{cname}
+</select>
+<select id="prgetCname"  resultType="String">
+select cname from course where cid=#{cid}
+</select>
+<select id="prgetTid" parameterType="map" resultType="int">
+select tid from test where cid=#{cid} and ncs_name=#{ncs_num} and type=#{type}
+</select>
+</mapper>

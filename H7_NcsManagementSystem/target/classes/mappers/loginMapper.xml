@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h7nms.dao.LoginDAO">
+	<!-- 회원가입 -->
+	<insert id="createMember" parameterType="com.h7nms.dto.LoginDTO">
+		insert into
+		member(userid,
+		password, name, phone,
+		email, address, address_extra,
+		POSTCODE, ADDRESS_DETAIL) values
+		(#{userid}, #{userpassword},
+		#{name},
+		#{phone},#{email}, #{address},
+		#{address_extra}, #{postcode},
+		#{address_detail})
+	</insert>
+	<insert id="createAuth">
+		insert into member_auth (userid, wanted) values
+		(#{userid}, #{authority})
+	</insert>
+	<!-- 아이디 찾기 -->
+	<select id="findId" parameterType="String" resultType="String">
+		select
+		userid from member where name=#{name} and email=#{email}
+	</select>
+	<!-- 비밀번호 찾기 -->
+	<select id="findPw" parameterType="String" resultType="String">
+		select
+		password from member where userid=#{userid} and name=#{name} and
+		email=#{email}
+	</select>
+	<!-- 중복확인 -->
+	<select id="useridCheck" parameterType="String"
+		resultType="Integer">
+		SELECT COUNT(*) FROM member
+		WHERE userid = #{userid}
+	</select>
+	<select id="emailCheck" parameterType="String"
+		resultType="Integer">
+		SELECT COUNT(*) FROM member
+		WHERE email = #{email}
+	</select>
+	<select id="nameEmailFind" parameterType="String"
+		resultType="Integer">
+		SELECT COUNT(*) FROM member
+		WHERE email = #{email} and name
+		= #{name}
+	</select>
+	<select id="idNameEmailFind" parameterType="String"
+		resultType="Integer">
+		SELECT COUNT(*) FROM member
+		WHERE email = #{email} and name
+		= #{name} and userid = #{userid}
+	</select>
+
+	<!-- 비밀번호 수정 -->
+	<update id="passwordUpdate">
+		update member set password=#{password,
+		jdbcType=VARCHAR} where userid=#{userid, jdbcType=VARCHAR}
+	</update>
+	<!-- 기존 비밀번호 확인 -->
+	<select id="prePasswordCheck" parameterType="String"
+		resultType="Integer">
+		SELECT COUNT(*) FROM member
+		WHERE password = #{password} and
+		userid=#{userid}
+	</select>
+	<!-- 회원정보 수정 -->
+	<update id="memberUpdate">
+		update member set name=#{name}, email=#{email},
+		address=#{address}, address_detail=#{address_detail},
+		address_extra=#{address_extra}, postcode=#{postcode}, phone=#{phone}
+		where userid=#{userid}
+	</update>
+	<!-- 회원정보 수정 -->
+	<select id="memberDetail" parameterType="String"
+		resultType="com.h7nms.dto.LoginDTO">
+		select userid, name, phone, email, postcode, address,
+		ADDRESS_DETAIL, address_extra from member where userid=#{userid}
+	</select>
+</mapper>

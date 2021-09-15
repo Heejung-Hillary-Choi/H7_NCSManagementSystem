@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h7nms.dao.InstitutionDAO">
+<insert id="increateCourse">
+insert into course values (COURSE_CID_SEQ.nextval,#{cname},#{inid},#{prid},#{date_full},#{room_num})
+</insert>
+
+<select id="ingetInName" resultType="String">
+select name from member where userid=#{inid}
+</select>
+<select id="ingetPrName" resultType="String">
+select name from member where userid=#{prid}
+</select>
+<select id="ingetNewCid" resultType="int">
+select max(cid) from course
+</select>
+<select id="ingetOurCourses" resultType="DefaultCourseDTO">
+select * from course where inid=#{userid}
+</select>
+<select id="ingetAllStudents" resultType="InStudentListDTO">
+select m.userid as stid, name, phone, address from member m, member_auth ma where ma.authority like '%STUDENT%' and m.userid=ma.userid order by name
+</select>
+<select id="ingetThisCourse" resultType="DefaultCourseDTO">
+select * from course where cid=#{cid}
+</select>
+<select id="ingetThisStudents" resultType="InStudentListDTO">
+select userid as stid, name, phone, address from member where userid=#{stid} order by name
+</select>
+
+<select id="ingetNCSname" resultType="String">
+select DISTINCT ncs_name from test where ncs_num=#{ncs_num}
+</select>
+<select id="ingetNCSnum" resultType="String">
+select DISTINCT ncs_num from test where ncs_name=#{ncs_name}
+</select>
+<select id="ingetCname"  resultType="String">
+select cname from course where cid=#{cid}
+</select>
+<select id="ingetCid" resultType="int">
+select cid from course where cname=#{cname}
+</select>
+<select id="ingetStid" resultType="String">
+select userid from member where name=#{name}
+</select>
+<select id="ingetTid" parameterType="map" resultType="int">
+select tid from test where cid=#{cid} and ncs_name=#{ncs_num} and type=#{type}
+</select>
+
+<insert id="ininsertStinco">
+insert into STUDENT_IN_COURSE values (#{stid},#{cid},'0/0')
+</insert>
+<select id="inisAlreadyIn" resultType="String">
+select stid from STUDENT_IN_COURSE where cid=#{cid} and stid=#{stid}
+</select>
+<select id="intestSelect" resultType="com.h7nms.dto.TestSelectDTO">
+select cid, cname name from course  where inid=#{userid}
+</select>
+<select id="intestSelect2" resultType="com.h7nms.dto.TestSelectDTO">
+select distinct c.cid, t.ncs_name name from test t, member m, course c
+where m.userid=c.inid and t.cid=c.cid and m.userid=#{userid} order by c.cid
+</select>
+<select id="inScoreList_ncs_name"  resultType="String">
+select DISTINCT ncs_name from test where ncs_num=#{ncs_num}
+</select>
+
+<resultMap type="com.h7nms.dto.PrScoreListDTO" id="prScoreListMap">
+	 <result property="name" column="name" />
+	 <result property="sum" column="sum" />
+</resultMap>
+<select id="inScoreList" parameterType="com.h7nms.dto.PrScoreListDTO"  resultType="com.h7nms.dto.PrScoreListDTO">
+ select a.name, NVL(to_char(sum(b.answer)),'미실시') sum from 
+ (select st.name, st.userid from member st, student_in_course sic where st.userid=sic.stid and sic.cid=#{cid})
+a left outer join 
+(select st.userid, answer from member st, test_result tr where st.userid=tr.stid and tid=#{tid} ) 
+b on a.userid=b.userid group by name order by name
+</select>
+<select id="intestInfo"  resultType="com.h7nms.dto.TestInfoDTO">
+select i.name name, t.date_session, t.date_test, c.cname, s.name sname, t.ncs_name, p.name pname, t.ncs_num 
+from member i, test t, course c, member s, member p, student_in_course sic
+where s.userid=sic.stid and sic.cid=c.cid and c.cid=t.cid and p.userid=c.prid and i.userid=c.inid
+and s.userid=#{stid} and t.cid=#{cid} and t.ncs_num=#{ncs_num} and t.type=#{type}
+</select>
+<select id="inshowQuesAnswerResultList"  resultType="com.h7nms.dto.TestQResultDTO">
+select tp.ques_area, tp.ques_num, tp.question, tr.answer 
+from test_paper tp, test_result tr where tp.tid=tr.tid and tp.ques_num=tr.ques_num and 
+tp.tid=#{tid} and stid=#{stid} order by tp.ques_num
+</select>
+<select id="intestResultSumAvgList"  resultType="com.h7nms.dto.TestResultSNADTO">
+select ques_area, count(ques_num) count, sum(answer) sum, round(avg(answer),1) avg 
+from (select test_result.tid, test_paper.ques_area, test_result.ques_num, answer, stid from test_result, test_paper 
+where test_result.ques_num = test_paper.ques_num and test_result.tid=#{tid} and test_paper.tid=#{tid} and stid=#{stid})
+group by ques_area
+</select>
+</mapper>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h7nms.dao.BoardNoticeDAO">
+<insert id="createNotice">
+insert into board_notice(bid,btitle,bcontent,bname,bdate,bhit,bgroup,bstep,bindent) 
+values (b_noti_seq.nextval,#{btitle},#{bcontent},#{bname},sysdate,0,b_noti_seq.currval,0,0)
+</insert>
+
+<select id="readNotice" resultType="com.h7nms.dto.BoardDTO">
+select * from board_notice where bid=#{bid}
+</select>
+<update id="updateNotice">
+update board_notice set btitle=#{btitle},bcontent=#{bcontent}  
+where bid=#{bid}
+</update>
+<delete id="deleteNotice">
+delete from board_notice where bid=#{bid}
+</delete>
+
+<update id="boardNoticeHit" parameterType="int">
+    	UPDATE board_notice SET
+    	bHIT = bHIT+1
+    	WHERE bid = #{bid}
+</update>
+
+<sql id='searchNotice'>
+	<if test="searchType!=null">
+		<if test="searchType == 't'.toString()"> and btitle like '%'|| #{keyword}||'%'</if>
+		<if test="searchType == 'c'.toString()"> and bcontent like '%'|| #{keyword}||'%' </if>
+		<if test="searchType == 'w'.toString()"> and bname like '%'|| #{keyword}||'%' </if>
+		<if test="searchType == 'tc'.toString()"> and ( btitle like '%'|| #{keyword}||'%' OR bcontent like '%'|| #{keyword}||'%') </if>
+		<if test="searchType == 'cw'.toString()"> and ( bcontent like '%'|| #{keyword}||'%' OR bname like '%'|| #{keyword}||'%') </if>
+		<if test="searchType == 'tcw'.toString()"> and ( btitle like '%'|| #{keyword}||'%' OR bcontent like '%'|| #{keyword}||'%' OR bname like '%'|| #{keyword}||'%') </if>
+	</if>
+</sql>
+<select id="listSearchNotice" resultType="com.h7nms.dto.BoardDTO">
+<![CDATA[select bid, bname, btitle, bcontent, bdate, bhit , bgroup , bstep , bindent from
+(select /*+INDEX_DESC(board_notice, PK_BOARD_NOTICE)*/ rownum rn, bid,bname,btitle,bcontent,bdate,bhit,bgroup,bstep,bindent
+from board_notice where 1=1 ]]>
+<include refid="searchNotice"/>
+<![CDATA[ and rownum <= #{page} * #{perPageNum} and bid > 0 ) 
+where rn > (#{page} -1) * #{perPageNum}]]>
+</select>
+<select id="listSearchCountNotice" resultType="int">
+<![CDATA[ select count(bid) from board_notice where 1=1 ]]>
+<include refid="searchNotice"/>
+<![CDATA[ and bid > 0 ]]>
+</select>
+<!--추가  -->
+<select id="getNoticebid" resultType="int">
+select max(bid) from board_notice
+</select>
+<select id="getfilename" parameterType="int" resultType="String">
+select filename from file_boardNotice where bid=#{bid}
+</select>
+<delete id="delete_notice_file">
+delete file_boardNotice where bid=#{bid}
+</delete>
+<update id="update_notice_file">
+update file_boardNotice set filename=#{filename} where bid=#{bid}
+</update>
+<select id="getNoticeWriterNamebyBID" resultType="String">
+select m.name from member m, board_notice b where m.userid=b.bname and b.bid=#{bid}
+</select>
+<select id="getNoticeWriterNamebyUSERID" resultType="String">
+select name from member where userid=#{userid}
+</select>
+
+</mapper>

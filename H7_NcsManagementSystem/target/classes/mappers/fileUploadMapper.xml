@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h7nms.dao.FileUploadDAO">
+<insert id="addFile">
+insert into file_newCourse(cid, cname, filename) values (#{cid}, #{cname}, #{filename})
+</insert>
+<insert id="addFile_qna">
+insert into file_boardQna(bid, bname, filename) values (#{bid}, #{bname}, #{filename})
+</insert>
+<insert id="addFile_notice">
+insert into file_boardNotice(bid, bname, filename) values (#{bid}, #{bname}, #{filename})
+</insert>
+
+<select id="isFileAlreadyIn_notice" resultType="int">
+select count(*) from file_boardnotice where bid=#{bid}
+</select>
+<select id="isFileAlreadyIn_qna" resultType="int">
+select count(*) from file_boardqna where bid=#{bid}
+</select>
+
+</mapper>

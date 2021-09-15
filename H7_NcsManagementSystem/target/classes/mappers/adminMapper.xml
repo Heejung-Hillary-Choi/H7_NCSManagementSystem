@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h7nms.dao.AdminDAO">
+	<!--신규 멤버 -->
+	<select id="newMember_select"
+		resultType="com.h7nms.dto.AdminNewMemberDTO">
+		select ROWNUM, m.userid as userid, name, phone, email,
+		wanted
+		from member m, member_auth ma
+		where ma.authority='NEW' and
+		m.userid=ma.userid
+	</select>
+	<update id="newMember_update">
+		update member_auth set authority=wanted where
+		userid=#{userid}
+	</update>
+	<delete id="newMember_delete">
+		delete member where userid=#{userid}
+	</delete>
+	<delete id="newMember_delete2">
+		delete member_auth where userid=#{userid}
+	</delete>
+	<select id="newMember_search"
+		resultType="com.h7nms.dto.AdminNewMemberDTO">
+		select ROWNUM, m.userid as userid, name, phone, email,
+		wanted
+		from member m, member_auth ma
+		where ma.authority='NEW' and
+		m.userid=ma.userid and m.userid like
+		'%'||#{search}||'%' or m.name like
+		'%'||#{search}||'%'
+	</select>
+	<!--휴면 멤버 -->
+	<select id="dormant_member"
+		resultType="com.h7nms.dto.AdminDormantMemberDTO">
+		select rownum,userid,password,name,phone,email,enabled from
+		member where userid!='admin' order by name asc
+	</select>
+	<update id="dormant_update">
+		update member set enabled='0' where userid=#{userid}
+	</update>
+	<update id="dormant_update2">
+		update member set enabled='1' where userid=#{userid}
+	</update>
+	<select id="dormant_search"
+		resultType="com.h7nms.dto.AdminDormantMemberDTO">
+		select rownum,userid,password,name,phone,email,enabled from
+		member where
+		userid like '%'||#{search}||'%' or name like
+		'%'||#{search}||'%' order by name asc
+	</select>
+
+	<!-- 진단평가지 등록 -->
+	<select id="ncstest" resultType="com.h7nms.dto.AdminNcsTestDTO">
+		select c.cname, c.prid,
+		fn.filename from course c, file_newCourse fn where
+		c.cid=fn.cid and
+		c.cname=fn.cname
+	</select>
+	<select id="ncsTest_search"
+		resultType="com.h7nms.dto.AdminNcsTestDTO">
+		select c.cname, c.prid, fn.filename from course c,
+		file_newCourse fn where
+		c.cid=fn.cid and c.cname=fn.cname and c.cname
+		like '%'||#{search}||'%'
+		or c.prid like '%'||#{search}||'%'
+	</select>
+
+	<!-- 2차 인증 -->
+	<select id="getSavedAdminEmail" resultType="String">
+		select m.email from
+		member m, member_auth ma where m.userid='admin' and
+		m.userid=ma.userid
+		and ma.authority='ROLE_ADMIN'
+	</select>
+	<select id="adminemailCheck" parameterType="String"
+		resultType="Integer">
+		select count(*) from member m, member_auth ma where
+		m.userid='admin' and
+		m.userid=ma.userid and ma.authority='ROLE_ADMIN'
+		and m.email =
+		#{email}
+	</select>
+</mapper>

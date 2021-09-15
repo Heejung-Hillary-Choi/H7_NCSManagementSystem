@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h7nms.dao.BoardQnaDAO">
+<insert id="createQna">
+insert into board_qna(bid,btitle,bcontent,bname,bdate,bhit,bgroup,bstep,bindent) 
+values (b_qna_seq.nextval,#{btitle},#{bcontent},#{bname},sysdate,0,b_qna_seq.currval,0,0)
+</insert>
+
+<select id="readQna" resultType="com.h7nms.dto.BoardDTO">
+select name as bwriter, bq.* from board_qna bq, member m where m.userid=bq.bname and bid=#{bid}
+</select>
+<select id="getQnaOriginalBgroup" resultType="int">
+select bgroup from board_qna where bid=#{bid}
+</select>
+<select id="getQnaOriginalBstep" resultType="int">
+select bstep from board_qna where bid=#{bid}
+</select>
+<select id="getQnaOriginalBindent" resultType="int">
+select bindent from board_qna where bid=#{bid}
+</select>
+<select id="getQnaWriterNamebyBID" resultType="String">
+select m.name from member m, board_qna b where m.userid=b.bname and b.bid=#{bid}
+</select>
+<select id="getQnaWriterNamebyUSERID" resultType="String">
+select name from member where userid=#{userid}
+</select>
+
+<update id="updateQna">
+update board_qna set btitle=#{btitle},bcontent=#{bcontent}  
+where bid=#{bid}
+</update>
+<delete id="deleteQna">
+delete from board_qna where bid=#{bid}
+</delete>
+<update id="boardQnaHit" parameterType="int">
+    	UPDATE board_qna SET
+    	bHIT = bHIT+1
+    	WHERE bid = #{bid}
+</update>
+
+<update id="replyShapeQna">
+update board_qna 
+set bstep=bstep+1 
+where bgroup=#{bgroup} and bstep > #{bstep}
+</update>
+<insert id ="replyCreateQna">
+insert into board_qna(bid,btitle,bcontent,bname,bdate,bhit,bgroup,bstep,bindent) 
+values(b_qna_seq.nextval,#{btitle},#{bcontent},#{bname},sysdate,0,#{bgroup},#{bstep}+1,#{bindent}+1)
+</insert>
+
+<sql id='searchQna'>
+	<if test="searchType!=null">
+		<if test="searchType=='t'.toString()"> and btitle like '%'|| #{keyword}||'%'</if>
+		<if test="searchType == 'c'.toString()"> and bcontent like '%'|| #{keyword}||'%' </if>
+		<if test="searchType == 'w'.toString()"> and bname like '%'|| #{keyword}||'%' </if>
+		<if test="searchType == 'tc'.toString()"> and ( btitle like '%'|| #{keyword}||'%' OR bcontent like '%'|| #{keyword}||'%') </if>
+		<if test="searchType == 'cw'.toString()"> and ( bcontent like '%'|| #{keyword}||'%' OR bname like '%'|| #{keyword}||'%') </if>
+		<if test="searchType == 'tcw'.toString()"> and ( btitle like '%'|| #{keyword}||'%' OR bcontent like '%'|| #{keyword}||'%' OR 
+													bname like '%'|| #{keyword}||'%') </if>
+	</if>
+</sql>
+<select id="listSearchQna" resultType="com.h7nms.dto.BoardDTO">
+<![CDATA[select bid, bname, btitle, bcontent, bdate, bhit, bgroup, bstep, bindent from (select rownum rn, A.* from 
+(select /*+INDEX_DESC(board_qna, PK_BOARD_QNA)*/ bid,bname,btitle,bcontent,bdate,bhit,bgroup,bstep,bindent
+from board_qna order by bgroup desc,bstep asc) A where 1=1 ]]>
+<include refid="searchQna"/>
+<![CDATA[ and rownum <= #{page} * #{perPageNum} and bid > 0  order by bgroup desc,bstep asc) 
+where rn > (#{page} -1) * #{perPageNum}]]>
+</select>
+<select id="listSearchCountQna" resultType="int">
+<![CDATA[ select count(bid) from board_qna where 1=1 ]]>
+<include refid="searchQna"/>
+<![CDATA[ and bid > 0 ]]>
+</select>
+
+<!--추가  -->
+<select id="getQnabid" resultType="int">
+select max(bid) from board_qna
+</select>
+<select id="getfilename" parameterType="int" resultType="String">
+select filename from file_boardQna where bid=#{bid}
+</select>
+<delete id="delete_qna_file">
+delete file_boardQna where bid=#{bid}
+</delete>
+<update id="update_qna_file">
+update file_boardQna set filename=#{filename} where bid=#{bid}
+</update>
+</mapper>
+

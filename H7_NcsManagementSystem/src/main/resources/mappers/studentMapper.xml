@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h7nms.dao.StudentDAO">
+<!-- 학생이 자기가 듣는 강의 목록을 출력하는 메소드 -->
+<select id="stcourseList" resultType="CourseListDTO">
+select c.cid, c.cname,p.name,c.date_full,c.room_num from course c,student_in_course sic, member p 
+where c.cid=sic.cid and c.prid=p.userid and sic.stid=#{stid} order by date_full asc
+</select>
+<!-- cname을 가지고 해당 강의의 전체 평가일정표를 보여주는 메소드 
+<select id="stncsDistinctList" resultType="StNcsListDTO">
+select DISTINCT(ncs_num) as ncs_num, ncs_name, date_session from test 
+where cid=(select cid from course where cname=#{cname}) 
+order by date_session
+</select>-->
+<!-- cid을 가지고 해당 강의의 전체 평가일정표를 보여주는 메소드 -->
+<select id="stncsDistinctList" resultType="StNcsListDTO">
+select DISTINCT(ncs_num) as ncs_num, ncs_name, date_session from test 
+where cid=#{cid} order by date_session
+</select>
+<!-- 한 강의에서, 각각의 능력단위에 따라, 사전-사후 평가 내역이 존재하는지 찾는다. -->
+<select id="stgetIsTestResult1" resultType="String">
+select distinct(tid) as isTestResult from test_result 
+where tid=(select tid from test 
+where cid=#{cid} and ncs_num=#{ncs_num, jdbcType=VARCHAR} and type=1) and stid=#{userid} 	
+</select>
+<select id="stgetIsTestResult2" resultType="String">
+select distinct(tid) as isTestResult from test_result 
+where tid=(select tid from test 
+where cid=#{cid} and ncs_num=#{ncs_num, jdbcType=VARCHAR} and type=2) and stid=#{userid} 	
+</select>
+<select id="stisAlreadyIn" resultType="String">
+select distinct(tid) from test_result where tid=#{tid} and stid=#{userid} 	
+</select>
+
+<!-- 능력단위코드에 따라 해당하는 진단문항 및 test_detail 테이블의 값을 반환하는 메소드 -->
+<select id="stTest_detail" resultType="Test_detailDTO">
+select * from Test_detail where Test_detail.ques_area= 
+(select ncs_num from Test_detail where ncs_num=#{ncs_num})
+</select>
+<!-- testSelect.jsp에서 cname 콤보박스1을 보여주는 메소드  -->
+<select id="sttestSelectCname" resultType="TestSelectDTO">
+select cname as name, sic.cid as cid from course c, student_in_course sic where c.cid=sic.cid and stid=#{stid}
+</select>
+<!-- testSelect.jsp에서 ncs_name 을 보여주는 메소드 -->
+<select id ="sttestSelectNcsname" resultType="TestSelectDTO">
+select distinct(ncs_name) as name ,sic.cid from test t, student_in_course sic where sic.cid=t.cid and stid=#{stid}
+</select>
+<!--사용자가 선택한 값에 따라 시험지의 '정보'테이블(상단)을 채워서 보여주는 메소드 -->
+<select id = "sttestInfo" resultType = "TestInfoDTO">
+select i.name, t.date_session, t.date_test, c.cname, s.name as sname, t.ncs_name, p.name as pname, t.ncs_num 
+from member i, test t, course c, member s, member p, student_in_course sic 
+where s.userid=sic.stid and sic.cid=c.cid and c.cid=t.cid and p.userid=c.prid and i.userid = c.inid 
+and s.userid=#{stid} and t.tid=#{tid}
+</select>
+<!-- 사용자가 선택한 값에 따라 시험지의 '문항'테이블(하단)을 채워서 보여주는 메소드 -->
+<select id ="sttestQues" resultType ="TestQuesListDTO">
+select ques_area, ques_num, question from test_paper 
+where tid=#{tid} order by ques_num
+</select>
+<!-- test_result를 한번더 보여주는 메소드 -->
+<select id="stshowQuesAnswerResultList"  resultType="TestQResultDTO">
+select tp.ques_area, tp.ques_num, tp.question, tr.answer
+from test_paper tp, test_result tr where tp.tid=tr.tid and tp.ques_num=tr.ques_num and
+tp.tid=#{tid} and stid=#{stid} order by tp.ques_num asc
+</select>
+<!-- DB의 test_result테이블에서 해당학생, 해당시험으로 저장된 점수값들의 '총점과 평균'을 계산하여 불러오는 메소드 -->
+<select id="sttestResultSumAvgList" resultType="TestResultSNADTO">
+select TA.ques_area, count, sum, avg from (select distinct substr(tr.ques_num,1,1) as qn, ques_area from test_result tr, test_paper tp where tr.tid=tp.tid and tr.ques_num=tp.ques_num and tr.tid=#{tid} and tr.stid=#{stid}) TA, (select tp.ques_area, count(tr.ques_num) as count, sum(answer) as sum, round(avg(answer),1) as avg   
+from test_result tr, test_paper tp where tr.tid=tp.tid and tr.ques_num=tp.ques_num and tr.tid=#{tid} and tr.stid=#{stid} group by tp.ques_area) TB where TA.ques_area=TB.ques_area order by qn
+</select>
+<!-- testResultList에서 로그인한 stid로 수행한 결과가 있는 시험정보 보여주는 메소드 -->
+<select id="stmyTestResultList" resultType="TestResultListDTO">
+select distinct(tr.tid), c.cname, t.ncs_name, t.ncs_num, t.type from test_result tr, course c, test t
+where tr.tid=t.tid and c.cid= t.cid and tr.stid=#{stid}
+</select>
+
+<select id="stgetNCSnum" resultType="String">
+select distinct(ncs_num) from test where ncs_name=#{ncs_name}
+</select>
+<select id="stgetNCSname" resultType="String">
+select distinct(ncs_name) from test where ncs_num=#{ncs_num}
+</select>
+<select id="stgetCname" resultType="String">
+select cname from course where cid=#{cid} 
+</select>
+<select id ="stgetCid" resultType="Integer">
+select cid from course where cname=#{cname} 
+</select>
+<select id ="stgetTid" resultType="Integer">
+select tid from test where cid=(select cid from course where cname=#{cname}) and ncs_name=#{ncs_name} and type=#{type} 
+</select>
+
+<insert id="stcreateTestResult" parameterType="Test_resultDTO">
+<foreach collection="list" item="trdtos" open="INSERT ALL" close="select * from dual">
+into test_result(tid, answer, ques_num, stid) values 
+(#{trdtos.tid}, #{trdtos.answer}, #{trdtos.ques_num}, #{trdtos.stid})
+</foreach>
+</insert>
+
+</mapper>

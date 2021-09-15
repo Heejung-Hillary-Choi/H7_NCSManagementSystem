@@ -1,0 +1,112 @@
+@font-face {
+	font-family: 'G마켓 산스 TTF Medium';
+	src: url("../css/GmarketSansTTFMedium.ttf");
+}
+@charset "UTF-8";
+/* table */
+/* section {
+	min-height: 80%;
+	height: auto !important;
+	margin: 0 auto -4em;
+}
+ */
+h2 {
+	text-align: center;
+	margin: 20px;
+}
+
+table {
+	border-collapse: collapse;
+	border-top: 3px solid #168;
+	height: auto;
+	width: 80%;
+	margin: auto;
+}
+
+th {
+	color: rgb(64, 85, 146);
+	background: #f0f6f9;
+	text-align: center;
+}
+
+td a {
+	float: left;
+	color: black;
+	text-decoration-line: none;
+}
+
+th, td {
+	padding: 10px;
+	border: 1px solid #ddd;
+	height: 40px;
+}
+
+th:first-child, td:first-child {
+	border-left: 0;
+}
+
+th:last-child, td:last-child {
+	border-right: 0;
+}
+
+.center {
+	text-align: center;
+}
+/* tr td:first-child {
+	text-align: center;
+} */
+form {
+	text-align: center;
+	font-size: 15px;
+	margin: 5px;
+}
+
+form>input, select {
+	display: inline-block;
+	font-size: 15px;
+	margin: 10px;
+	padding: 5px 5px;
+	width: 120px;
+}
+/*--공지사항 게시판--*/
+#listSearchNotice {
+	text-align: center;
+}
+
+.pagination {
+	display: inline-block;
+	text-align: center;
+	padding: 10px;
+}
+
+.pagination a {
+	border-radius: 5px;
+	color: black;
+	float: left;
+	padding: 8px 16px;
+	text-decoration: none;
+	transition: background-color .3s;
+	border: 1px solid #ddd;
+}
+
+.pagination a.active {
+	border-radius: 5px;
+	background-color: #798699;
+	color: white;
+}
+
+/* .pagination a:hover:not (.active ) {
+	background-color: #8da4c7;
+	color: white;
+} */
+
+select {
+width: 70%;
+}
+
+input[type=radio] {
+    width: 20px;
+    height: 20px;
+    top: 6px;
+    position: relative;
+}

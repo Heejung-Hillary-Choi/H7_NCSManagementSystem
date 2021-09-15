@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h7nms.dao.MainDAO">
+	<select id="mainshowBoardNoti" resultType="com.h7nms.dto.MainDTO">
+		select btitle, bname, bdate, bhit from (select rownum rn, bid, m.name as bname,
+		btitle, bcontent, bdate, bhit from board_notice, member m where m.userid=bname order by bid desc)
+		<![CDATA[where rn<=3]]>
+	</select>
+	<select id="mainshowBoardQna" resultType="com.h7nms.dto.MainDTO">
+		select btitle, bname, bdate, bhit from (select rownum rn, bid, m.name as bname,
+		btitle, bcontent, bdate, bhit from board_qna, member m where m.userid=bname and bindent=0 order by bid desc)
+		<![CDATA[where rn<=3]]>
+	</select>
+</mapper>
