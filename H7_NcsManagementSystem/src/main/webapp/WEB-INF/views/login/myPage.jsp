@@ -22,12 +22,10 @@
 			</sec:authorize>
 		</div>
 		<div class="input-box">
-			<input type="text" id="password" name="password" class="halfbox"
-				readonly> <label for="password">비밀번호</label><input
+			 <label for="password">비밀번호</label><input
 				type="button" onclick="location.href='../login/passwordUpdateView'"
-				id="smallBtn" value="비밀번호 변경">
+				id="smallBtn" value="비밀번호 변경" style="margin-top:30px; margin-left:0px;">
 		</div>
-
 		<c:forEach items="${memberDetailDtos}" var="memberDetailDtos">
 			<div class="input-box">
 				<input type="text" name="name" id="name" maxlength="50"
